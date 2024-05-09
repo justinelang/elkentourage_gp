@@ -53,31 +53,32 @@ A. Financial_Repercussions
 - quarantine_code.Rmd: functions to calculate the cost of quarantining cattle under different brucellosis risk scenarios
 
 B. Public_Comment
+- specific Rmd or script name
 
 C. Transmission_Risk
 - cattle_reactor_code_final.Rmd: functions to calculate brucellosis transmission risk under different elk-to-cattle overlap and elk seroprevalence scenarios
 
 2.  Relationship between files, if important:
-
-3.  Additional related data collected that was not included in the current data package:
-
-4.  Are there multiple versions of the dataset? \<A. If yes, name of file(s) that was updated: i. Why was the file updated? ii. When was the file updated?\>
+- fund_code.Rmd uses agcensus22.csv
+- cattle_reactor_code_final.Rmd output informs fund_code.Rmd and quarantine_code.Rmd input
+- quarantine_code.Rmd output informs fund_code.Rmd input
+- [public comment file names here]
 
 ## METHODOLOGICAL INFORMATION
 
-1.  Description of methods used for collection/generation of data: \<Include links or references to publications or other documentation containing experimental design or protocols used in data collection\>
+1.  Description of methods used for collection/generation of data: All data used to inform parameters and code were pulled or adapted from literature and consultations with experts. See sources listed above. 
 
-2.  Methods for processing the data: \<describe how the submitted data were generated from the raw or collected data\>
+2.  Methods for processing the data:
+
+A. Financial_Repercussions: Using different brucellosis risk scenarios (years between cattle cases) modeled with cattle_reactor_code_final.Rmd, quarantine_code.Rmd was run to calculate the cost of cattle quarantine based on cattle case frequency. This output was input into fund_code.Rmd to calculate the size of a brucellosis compensation fund in USD. See "Calculations for Change in Brucellosis Costs in Teton County" within the final report for additional methods and a table of parameters.  
+
+B. Public_Comment: Public comments were read through and then analyzed for general sentiments and attitudes and ideas. Letters were also analyzed for ideas and suggestions that respondents offered. PDFs of the public comments were then read into [code name], where a sentiment analysis was performed using the NRC Word-Emotion Association Lexicon from Saif Mohammad and Peter Turney. See "Elk Feedground Public Sentiment Analysis" within the final report for additional methods.
+
+C. Transmission_Risk: With different elk-cattle overlap and elk seroprevalence inputs (low, medium, high), cattle_reactor_code_final.Rmd was run to simulate brucellosis tranmission risk scenarios. Output is number of years between cattle reactors. See the markdown file and "Brucellosis Transmission Risk Model" within the final report for additional methods and a table of parameters. 
 
 3.  Instrument- or software-specific information needed to interpret the data: \<include full name and version of software, and any necessary packages or libraries needed to run scripts\>
 
-4.  Standards and calibration information, if appropriate:
-
-5.  Environmental/experimental conditions:
-
-6.  Describe any quality-assurance procedures performed on the data:
-
-7.  People involved with sample collection, processing, analysis and/or submission:
+4.  People involved with sample collection, processing, analysis and/or submission: Kat Aristi, Delores Chan, Justine Lang, and Samuel Desre. 
 
 ## DATA-SPECIFIC INFORMATION FOR:
 
