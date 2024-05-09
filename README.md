@@ -30,7 +30,16 @@ Name: Samuel Desre; Role: Financial Manager; Institution: Bren School of Environ
 
 3.  Links to other publicly accessible locations of the data: Related data used in this project are archived in Dryad: https://doi.org/10.5061/dryad.98sf7m0rx 
 
-4.  Was data derived from another source? If yes, list source(s): \<list citations to original sources\>
+4.  Was data derived from another source? If yes, list source(s): 
+
+A. Financial_Repercussions
+- agcensus22.csv: Tabular data were pulled from the 2022 USDA Census of Agriculture (https://www.nass.usda.gov/Publications/AgCensus/2022/Full_Report/Volume_1,_Chapter_2_County_Level/Wyoming/st56_2_011_011.pdf) 
+- fund_code.Rmd and quarantine_code.Rmd: Code was adapted from Python code by Ben Foster (bentfoster@gmail.com). Hay price and consumption parameters were informed by Selk, 2022 (https://www.drovers.com/news/beef-production/how-much-hay-will-cow-consume-estimate-your-winter-feed-needs), the National Integrated Drought Information System, 2022 (https://www.drought.gov/sites/default/files/2022-07/Western-Drought-Status-Update-July-2022.pdf), and the National Agriculture Statistics Service, 2022 (https://www.nass.usda.gov/Statistics_by_State/Wyoming/Publications/Brochures/Wyoming%20Hay%20Facts%202022.pdf)
+
+B. Public_Comment
+
+C. Transmission_Risk
+- cattle_reactor_code_final.Rmd: Functions and most parameters were adapted from Kauffman et al., 2016 (https://doi.org/10.1016/j.prevetmed.2016.08.004). Current elk-cattle overlap was informed by the USDA Animal Health and Plant Inspection Service, 2023 (https://www.aphis.usda.gov/aphis/ourfocus/animalhealth/animal-disease-information/cattle-disease-information/tuberculosis-brucellosis-monthly-report). Jackson elk seroprevalence was informed by Merkle et al., 2017 (https://doi.org/10.1111/1365-2664.13022). Female elk proportion was informed by Eric Cole, USFWS (eric_cole@fws.gov)
 
 5.  Recommended citation for the project: Lang, J., Aristi, K., Chan, D., & Desre, S. (2024). Managing Human-Wildlife Interactions: Ecological and Financial Assessment of Elk Feedground Closure in Teton County [GitHub Repository]. GitHub. https://github.com/justinelang/elkentourage_gp 
 
