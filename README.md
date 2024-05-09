@@ -20,25 +20,33 @@ Name: Samuel Desre; Role: Financial Manager; Institution: Bren School of Environ
 
 4.  Geographic location of data collection: Teton County, WY and the broader Greater Yellowstone Ecosystem, USA
 
-5.  Information about funding sources that supported the collection of the data: No funding was aqcuired. 
+5.  Information about funding sources that supported the collection of the data: No funding was acquired. 
 
 ## SHARING/ACCESS INFORMATION
 
-1.  Licenses/restrictions placed on the data:
+1.  Licenses/restrictions placed on the data: No restrictions are placed on the data. 
 
-2.  Links to publications that cite or use the data:
+2.  Links to publications that cite or use the data: Aristi, K., Chan, D, Lang, J., & Desre, S. (2024). Managing Human-Wildlife Interactions: Ecological and Financial Assessment of Elk Feedground Closure in Teton County [Master’s Thesis Equivalent, Bren School of Environmental Science & Management, University of California, Santa Barbara]. https://bren.ucsb.edu/projects/managing-human-wildlife-interactions-ecological-and-financial-assessment-elk-feedground 
 
-3.  Links to other publicly accessible locations of the data:
+3.  Links to other publicly accessible locations of the data: Related data used in this project are archived in Dryad: https://doi.org/10.5061/dryad.98sf7m0rx 
 
-4.  Links/relationships to ancillary data sets: \<any supplementary data sources that support analysis or classification of the datasets, eg., plant taxonomy table.)\>
+4.  Was data derived from another source? If yes, list source(s): \<list citations to original sources\>
 
-5.  Was data derived from another source? If yes, list source(s): \<list citations to original sources\>
-
-6.  Recommended citation for the project:
+5.  Recommended citation for the project: Lang, J., Aristi, K., Chan, D., & Desre, S. (2024). Managing Human-Wildlife Interactions: Ecological and Financial Assessment of Elk Feedground Closure in Teton County [GitHub Repository]. GitHub. https://github.com/justinelang/elkentourage_gp 
 
 ## DATA & FILE OVERVIEW
 
-1.  File List: \<list all files (or folders, as appropriate for dataset organization) contained in the dataset, with a brief description of their content\>
+1.  File List: 
+
+A. Financial_Repercussions
+- agcensus22.csv: Teton County cattle census data pulled from the 2022 USDA Census of Agriculture
+- fund_code.Rmd: functions to calculate brucellosis compensation fund size
+- quarantine_code.Rmd: functions to calculate the cost of quarantining cattle under different brucellosis risk scenarios
+
+B. Public_Comment
+
+C. Transmission_Risk
+- cattle_reactor_code_final.Rmd: functions to calculate brucellosis transmission risk under different elk-to-cattle overlap and elk seroprevalence scenarios
 
 2.  Relationship between files, if important:
 
