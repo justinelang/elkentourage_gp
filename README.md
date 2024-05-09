@@ -1,22 +1,26 @@
-This `README.md` file was generated on YYYY-MM-DD by NAME \<help text is included in angle brackets, and can be deleted before saving\>
+This `README.md` file was generated on 2024-05-08 by Justine Lang
 
 ## GENERAL INFORMATION
 
-1.  Title of the Project: Managing Human-Wildlife Interactions: Ecological
+1.  Title of the Project: Managing Human-Wildlife Interactions: Ecological and Financial Assessment of Elk Feedground Closure in Teton County
 
 2.  Author Information
 
-A. Principal Investigator Contact Information Name: Institution: Address: Email:
+A. Primary Contact Information 
+Name: Justine Lang; Role: Data Manager; Institution: Bren School of Environmental Science & Management, University of California, Santa Barbara; Email: justinelang@bren.ucsb.edu  
 
-B. Associate or Co-investigator Contact Information Name: Institution: Address: Email:
+B. Alternate Contact Information 
+Name: Katherine Aristi; Role: Project Manager; Institution: Bren School of Environmental Science & Management, University of California, Santa Barbara; Email: katherinearisti@bren.ucsb.edu
 
-C. Alternate Contact Information Name: Institution: Address: Email:
+Name: Delores Chan; Role: Communications Manager; Institution: Bren School of Environmental Science & Management, University of California, Santa Barbara; Email: deloreschan@bren.ucsb.edu
 
-3.  Date of data collection or obtaining (single date, range, approximate date) \<suggested format YYYY-MM-DD. If multiple data files, list it accordingly\>:
+Name: Samuel Desre; Role: Financial Manager; Institution: Bren School of Environmental Science & Management, University of California, Santa Barbara; Email: samueldesre@bren.ucsb.edu
 
-4.  Geographic location of data collection: \<latitude, longitude, or city/region, State, Country, as appropriate. Again, if multiple data sources, specify accordingly\>:
+3.  Date of data collection: 2023-04-03 - 2024-03-22
 
-5.  Information about funding sources that supported the collection of the data:
+4.  Geographic location of data collection: Teton County, WY and the broader Greater Yellowstone Ecosystem, USA
+
+5.  Information about funding sources that supported the collection of the data: No funding was aqcuired. 
 
 ## SHARING/ACCESS INFORMATION
 
