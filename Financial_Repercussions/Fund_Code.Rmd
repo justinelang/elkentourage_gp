@@ -1,0 +1,64 @@
+---
+title: "Fundcode"
+author: "Samuel Desré"
+date: "2024-03-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(janitor)
+library(readr)
+library(here)
+library(dplyr)
+```
+
+```{r}
+data_2022 <-read_csv(here("agcensus22.csv"))
+
+# Assumptions
+#Quarantine = 10 months, Winter Months = w, Non Winter Months = s
+# Cull Rate = 5%, Market = 45%, Herd = 50%
+# Cull Incentive Cost = 50.0$ per head
+w = 5
+s = 5
+# Number of years until cattle reactor
+r1 = 7.9
+r2 = 27.65
+
+r3=4.25
+r4=27.65
+
+r5=13.83
+r6=27.65
+hay= 225 * 30 * 30 * (1/2000)
+
+# Max Payment per case = $100,000
+# Percentage of case covered = 75%
+
+
+# Loop Time Medium Scenario
+num_samples <- 1000
+fund_cost_values <- vector("numeric", length = num_samples)
+
+for (i in 1:num_samples) {
+  sampled_data <- data_2022 %>% sample_n(1)
+  q_cost <- ((sampled_data$herd*0.05*50)+(sampled_data$herd*0.45*w*hay)+(sampled_data$herd*0.45*s*hay)+(sampled_data$herd*0.5*s*hay))*(1/4.25)
+  if (q_cost > 100000) {
+    fund_cost=100000
+  } else {
+    fund_cost = 0.75 * q_cost
+  }
+  fund_cost_values[i] <-fund_cost
+}
+
+average_fund_cost <- mean(fund_cost_values)*5
+
+#test
+
+```
+
+
+

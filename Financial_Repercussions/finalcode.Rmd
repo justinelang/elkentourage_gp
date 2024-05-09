@@ -1,0 +1,151 @@
+---
+title: "Final Code"
+author: "Samuel Desré"
+date: "2024-03-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(janitor)
+library(readr)
+library(here)
+library(dplyr)
+```
+
+
+```{r}
+# Low Scenario 1.5 Overlap = 13.83
+# Medium Scenario 3.0 Overlap = 7.90
+# High Scenario 6.0 Overlap = 4.25
+```
+
+
+
+```{r}
+# Assumptions
+#Quarantine = 10 months, Winter Months = w, Non Winter Months = s
+# Cull Rate = 5%, Market = 45%, Herd = 50%
+# Cull Incentive Cost = 50.0$ per head
+w = 5
+s = 5
+# Number of years until cattle reactor
+r1 = 4.25
+r2 = 27.65
+
+r3=4.25
+r4=27.65
+
+r5=13.83
+r6=27.65
+hay= 225 * 30 * 30 * (1/2000)
+
+data_2022 <-read_csv(here("agcensus22.csv"))
+set.seed(879)
+
+#Medium Scenario
+num_samples <- 1000
+q_cost_values <- vector("numeric", length = num_samples)
+
+for (i in 1:num_samples) {
+  sampled_data <- data_2022 %>% sample_n(1)
+  q_cost <- ((sampled_data$herd*0.05*50)+(sampled_data$herd*0.45*w*hay)+(sampled_data$herd*0.45*s*hay)+(sampled_data$herd*0.5*s*hay))*(1/r1)
+q_cost_values[i] <-q_cost
+}
+
+average_q_cost <- mean(q_cost_values)
+```
+
+
+
+```{r}
+#Medium Scenario
+num_samples <- 1000
+q_cost_values2 <- vector("numeric", length = num_samples)
+
+for (i in 1:num_samples) {
+  sampled_data <- data_2022 %>% sample_n(1)
+  q_cost2 <- ((sampled_data$herd*0.05*50)+(sampled_data$herd*0.45*w*hay)+(sampled_data$herd*0.45*s*hay)+(sampled_data$herd*0.5*s*hay))*(1/r2)
+q_cost_values2[i] <-q_cost2
+}
+
+average_q_cost2 <- mean(q_cost_values2)
+
+change_scenario_1 <- average_q_cost - average_q_cost2
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+#High Scenario
+num_samples <- 1000
+q_cost_values3 <- vector("numeric", length = num_samples)
+
+for (i in 1:num_samples) {
+  sampled_data <- data_2022 %>% sample_n(1)
+  q_cost3 <- ((sampled_data$herd*0.05*50)+(sampled_data$herd*0.45*w*hay)+(sampled_data$herd*0.45*s*hay)+(sampled_data$herd*0.5*s*hay))*(1/r3)
+q_cost_values3[i] <-q_cost3
+}
+
+average_q_cost3 <- mean(q_cost_values3)
+```
+
+```{r}
+#High Scenario
+num_samples <- 1000
+q_cost_values4 <- vector("numeric", length = num_samples)
+
+for (i in 1:num_samples) {
+  sampled_data <- data_2022 %>% sample_n(1)
+  q_cost4 <- ((sampled_data$herd*0.05*50)+(sampled_data$herd*0.45*w*hay)+(sampled_data$herd*0.45*s*hay)+(sampled_data$herd*0.5*s*hay))*(1/r4)
+q_cost_values4[i] <-q_cost4
+}
+
+average_q_cost4 <- mean(q_cost_values4)
+
+change_scenario_2 <- average_q_cost3 - average_q_cost4
+```
+
+```{r}
+#Low Scenario
+num_samples <- 1000
+q_cost_values5 <- vector("numeric", length = num_samples)
+
+for (i in 1:num_samples) {
+  sampled_data <- data_2022 %>% sample_n(1)
+  q_cost5 <- ((sampled_data$herd*0.05*50)+(sampled_data$herd*0.45*w*hay)+(sampled_data$herd*0.45*s*hay)+(sampled_data$herd*0.5*s*hay))*(1/r5)
+q_cost_values5[i] <-q_cost5
+}
+
+average_q_cost5 <- mean(q_cost_values5)
+```
+
+```{r}
+#Low Scenario
+num_samples <- 1000
+q_cost_values6 <- vector("numeric", length = num_samples)
+
+for (i in 1:num_samples) {
+  sampled_data <- data_2022 %>% sample_n(1)
+  q_cost6 <- ((sampled_data$herd*0.05*50)+(sampled_data$herd*0.45*w*hay)+(sampled_data$herd*0.45*s*hay)+(sampled_data$herd*0.5*s*hay))*(1/r6)
+q_cost_values6[i] <-q_cost6
+}
+
+average_q_cost6 <- mean(q_cost_values6)
+
+change_scenario_3 <- average_q_cost5 - average_q_cost6
+
+```
+
