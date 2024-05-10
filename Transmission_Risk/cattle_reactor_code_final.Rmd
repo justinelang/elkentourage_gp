@@ -1,0 +1,622 @@
+---
+title: "Cattle Reactor Code"
+author: "Justine Lang"
+date: "2023-08-10"
+output: 
+  html_document: 
+    code_folding: show
+---
+
+```{r setup, echo = TRUE, warning = FALSE, message = FALSE, results = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, results = FALSE)
+
+library(tidyverse) 
+```
+
+## Equation
+
+These brucellosis transmission risk functions are adapted from the Probabilistic Transmission Model from Kauffman et al. (2016).
+
+```{r}
+kauffman_fun <- function(OverElk, pFem, pPreg, seroprev, pAbort){
+  CattleReact <- (OverElk * pFem * pPreg * seroprev * pAbort)
+  return(CattleReact)
+}
+
+### Essentially need this equation 4 times: 1) fed and seropositive, 2) fed and seronegative, 3) unfed and seropositive, 4) unfed and seronegative
+
+cattlereact_fun <- function(fedpos, fedneg, unfedpos, unfedneg){
+  NumCattleReact <- (fedpos + fedneg + unfedpos + unfedneg)
+  return(NumCattleReact)
+}
+
+### Take the inverse to convert to years
+
+years_fun <- function(NumCattleReact){
+  Years <- (1/NumCattleReact)
+  return(Years)
+}
+```
+
+## Parameters
+
+* OverElk: elk-to-cattle overlap
+
+* pFem: Female elk proportion
+
+* pPreg: Pregnant elk proportion
+
+* seroprev: elk herd brucellosis seroprevalence
+
+* pAbort: elk abortion probabilitic (seronegative and seropositive)
+
+### Overlap
+
+There are roughly 9000 elk in the Jackson herd (varies from 9000 to 1100).
+
+* Fed: ~7500
+
+* Unfed: ~1500
+
+These numbers will change with the Step-Down Plan. 
+
+Common number of cattle on a ranch is 400, but that number varies by ranch. Overlap varies too. Teton County ranches are often smaller, and some are more in the path of elk migration than others. 
+
+* Kauffman starting value for elk-to-cattle overlap: 2.67
+
+There has been only one positive cattle brucellosis case in the past twenty years. While the NER is active, we can likely assume elk-cattle overlap is close to 0.
+
+Let's use these as starting values (NER in operation):
+
+* Fed elk-cattle overlap: 0.5
+
+* Unfed elk-cattle overlap: 0.5
+
+### Female Proportion
+
+Varies by herd unit.
+
+* Kauffamn starting value: 0.663
+
+Sex ratio favors female elk at birth. According to Eric Cole, the Jackson herd proportion is closer to 75%.
+
+* Jackson female proportion: 0.75
+
+### Pregnancy Proportion
+
+Fairly consistent between feedgrounds.
+
+* Pregnancy proportion: 0.79
+
+### Seroprevalence
+
+Fed and unfed seroprevalence is becoming similar. 
+
+* Average feedground seroprevalence: 0.25
+
+* Recent Jackson herd seroprevalence: 0.28
+
+* Kauffman starting value: 0.18
+
+### Abortion Proportion
+
+Also fairly consistent between herds.
+
+* Seropositive abortion: 0.201
+
+* Seronegative abortion: 0.017
+
+
+## Jackson Herd Test
+
+Let's set up parameters to run a test scenario. 
+
+```{r}
+### Assume there is very little difference between fed and unfed
+### Let's assume the NER is fully operational, so elk-cattle overlap is small
+
+OverElkJ <- 0.5 ### starting value, "J" for Jackson
+pFem1 <- 0.75 ### updated to 75%, Jackson-specific
+pPreg <- 0.79 ### consistent
+seroprev1 <- 0.28 ### Jackson-specific; for now won't differentiate between fed & unfed
+pAbort_pos <- 0.201 ### consistent
+pAbort_neg <- 0.017 ### consistent
+```
+
+```{r}
+### Starting value
+fed_posJ <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev1, pAbort_pos)
+unfed_posJ <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev1, pAbort_pos) 
+fed_negJ <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev1, pAbort_neg) 
+unfed_negJ <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev1, pAbort_neg) 
+num_cattlereactJ <- cattlereact_fun(fed_posJ, fed_negJ, unfed_posJ, unfed_negJ)
+
+year_J <- years_fun(num_cattlereactJ) ### 27.65 years
+```
+
+In other words, if we assume there is currently an overlap of an average of 0.5 elk to each cattle ranch in Teton County, then there will be at least one cattle brucellosis case every 30 years or so, give or take a few years.
+
+Let's assume the NER closes and increases overlap, with an overlap of 2.5 elk to cattle for the fed elk while the unfed maintain an overlap of 0.5. 
+
+```{r}
+### Define new overlap; reuse previous overlap (0.5) for unfed elk
+### Besides overlap, keeping other parameters similar for fed and unfed elk
+
+OverElkfed <- 2.5
+```
+
+```{r}
+### Using "C" to indicate NER closure
+
+### Starting value
+fed_posC <- kauffman_fun(OverElkfed, pFem1, pPreg, seroprev1, pAbort_pos)
+unfed_posC <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev1, pAbort_pos) 
+fed_negC <- kauffman_fun(OverElkfed, pFem1, pPreg, seroprev1, pAbort_neg) 
+unfed_negC <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev1, pAbort_neg) 
+num_cattlereactC <- cattlereact_fun(fed_posC, fed_negC, unfed_posC, unfed_negC)
+
+yearC <- years_fun(num_cattlereactC) ### 9.22 years
+```
+
+Increasing elk-cattle overlap in the Jackson area increases the frequency of cattle reactors to roughly at least one every 10 years, give or take a year or two. 
+
+## Overlap Scenarios
+
+### Fed Elk Overlap Scenarios 
+
+Vary overlap to generate different transmission risk scenarios. 
+
+```{r}
+### "O" for overlap
+### Short of setting up a loop for six different functions, here's a clunky manual way to vary overlap:
+
+OverElk_vary <- 6.0
+
+fed_posO <- kauffman_fun(OverElk_vary, pFem1, pPreg, seroprev1, pAbort_pos)
+unfed_posO <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev1, pAbort_pos) 
+fed_negO <- kauffman_fun(OverElk_vary, pFem1, pPreg, seroprev1, pAbort_neg) 
+unfed_negO <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev1, pAbort_neg) 
+num_cattlereactO <- cattlereact_fun(fed_posO, fed_negO, unfed_posO, unfed_negO)
+
+yearO <- years_fun(num_cattlereactO)
+```
+
+```{r}
+### Make a dataframe from outputs
+
+overlap_df <- data.frame(Overlap = seq(0.0, 6.0, by = 0.25),
+                     Years = c(55.30, 36.87, 27.65, 22.12, 18.43, 15.80, 13.83, 12.29, 11.06, 10.05, 9.22, 8.51, 7.90, 7.37, 6.91, 6.51, 6.14, 5.82, 5.53, 5.27, 5.03, 4.81, 4.61, 4.42, 4.25))
+```
+
+Examine averages and standard deviation. 
+
+```{r}
+### Sort into plausible, low, and high overlap scenarios
+
+prob <- c(7.90, 7.37, 6.91, 6.51, 6.14, 5.82, 5.53)
+probavg <- mean(prob) ### 6.60
+probsd <- sd(prob) ### 0.85
+
+low <- c(15.80, 13.83, 12.29, 11.06, 10.05, 9.22, 8.51)
+lowavg <- mean(low) ### 11.54
+lowsd <- sd(low) ### 2.61
+
+high <- c(5.27, 5.03, 4.81, 4.61, 4.42, 4.25)
+highavg <- mean(high) ### 4.73
+highsd <- sd(high) ### 0.38
+
+### Or here's a more efficient way:
+
+prob_df <- overlap_df[13:19,]
+
+current <- overlap_df[1:5,]
+
+# mean(current$Years) ### 32.074
+# sd(current$Years) ### 14.72
+```
+
+Graph. 
+
+```{r}
+### Change in years until a cattle reactor in the Jackson herd unit, following a change in fed elk-to-cattle overlap, assuming a constant overlap of 0.5 for unfed elk. And assuming similar seroprevalence for fed and unfed elk. 
+
+overlap_gg <- ggplot(data = overlap_df, aes(x = Overlap, y = Years)) +
+  geom_line(col = "red", linewidth = 1) +
+  geom_line(data = prob_df, aes(x = Overlap, y = Years), col = "blue3", linewidth = 1) +
+  geom_hline(yintercept = 6.60, linetype = "dashed", color = "blue3", linewidth = .75) +
+  geom_point() +
+  geom_point(aes(x = 0.5, y = 27.65), color = "blue3", size = 3) +
+  scale_x_continuous(breaks = seq(0.0, 6.0, by = 0.5)) +
+  scale_y_continuous(limits = c(0,56), breaks = seq(0, 60, by = 10)) +
+  # scale_y_continuous(limits = c(0, 50)) +
+  labs(x = "Fed Elk-to-Cattle Overlap", y = "Years Between Cattle Reactors") +
+  theme_minimal()
+
+overlap_gg 
+```
+
+
+### Unfed Elk Overlap Scenarios
+
+Vary fed elk overlap for different unfed overlap scenarios. 
+
+```{r}
+### Vary fed elk overlap for an unfed overlap of 0.25
+
+OverElk_vary <- 0.25
+
+fed_posU25 <- kauffman_fun(OverElk_vary, pFem1, pPreg, seroprev1, pAbort_pos)
+unfed_posU25 <- kauffman_fun(0.25, pFem1, pPreg, seroprev1, pAbort_pos) 
+fed_negU25 <- kauffman_fun(OverElk_vary, pFem1, pPreg, seroprev1, pAbort_neg) 
+unfed_negU25 <- kauffman_fun(0.25, pFem1, pPreg, seroprev1, pAbort_neg) 
+num_cattlereactU25 <- cattlereact_fun(fed_posU25, fed_negU25, unfed_posU25, unfed_negU25)
+
+yearU25 <- years_fun(num_cattlereactU25)
+```
+
+```{r}
+### Make a dataframe
+
+overlapU25_df <- data.frame(Overlap = seq(0.25, 6.0, by = 0.25),
+                     Years = c(55.30, 36.87, 27.65, 22.12, 18.43, 15.80, 13.83, 12.29, 11.06, 10.05, 9.22, 8.51, 7.90, 7.37, 6.91, 6.51, 6.14, 5.82, 5.53, 5.27, 5.03, 4.81, 4.61, 4.42))
+```
+
+```{r}
+### Vary fed elk overlap for an unfed overlap of 2.5
+
+OverElk_vary <- 6.0
+
+fed_posU225 <- kauffman_fun(OverElk_vary, pFem1, pPreg, seroprev1, pAbort_pos)
+unfed_posU225 <- kauffman_fun(2.5, pFem1, pPreg, seroprev1, pAbort_pos) 
+fed_negU225 <- kauffman_fun(OverElk_vary, pFem1, pPreg, seroprev1, pAbort_neg) 
+unfed_negU225 <- kauffman_fun(2.5, pFem1, pPreg, seroprev1, pAbort_neg) 
+num_cattlereactU225 <- cattlereact_fun(fed_posU225, fed_negU225, unfed_posU225, unfed_negU225)
+
+yearU225 <- years_fun(num_cattlereactU225)
+```
+
+```{r}
+### Make a dataframe
+
+overlapU225_df <- data.frame(Overlap = seq(0.0, 6.0, by = 0.50),
+                     Years = c(11.06, 9.22, 7.90, 6.91, 6.14, 5.53, 5.03, 4.61, 4.25, 3.95, 3.69, 3.46, 3.25))
+```
+
+```{r}
+### Vary fed elk overlap for an unfed overlap of 1.5
+
+OverElk_vary <- 6.0
+
+fed_posU15 <- kauffman_fun(OverElk_vary, pFem1, pPreg, seroprev1, pAbort_pos)
+unfed_posU15 <- kauffman_fun(1.5, pFem1, pPreg, seroprev1, pAbort_pos) 
+fed_negU15 <- kauffman_fun(OverElk_vary, pFem1, pPreg, seroprev1, pAbort_neg) 
+unfed_negU15 <- kauffman_fun(1.5, pFem1, pPreg, seroprev1, pAbort_neg) 
+num_cattlereactU15 <- cattlereact_fun(fed_posU15, fed_negU15, unfed_posU15, unfed_negU15)
+
+yearU15 <- years_fun(num_cattlereactU15)
+```
+
+```{r}
+### Make a dataframe
+
+overlapU15_df <- data.frame(Overlap = seq(0.0, 6.0, by = 0.50),
+                     Years = c(18.43, 13.83, 11.06, 9.22, 7.90, 6.91, 6.14, 5.53, 5.03, 4.61, 4.25, 3.95, 3.69))
+```
+
+```{r}
+### Vary fed elk overlap for an unfed overlap of 0.0
+
+OverElk_vary <- 0.75
+
+fed_posU0 <- kauffman_fun(OverElk_vary, pFem1, pPreg, seroprev1, pAbort_pos)
+unfed_posU0 <- kauffman_fun(0.0, pFem1, pPreg, seroprev1, pAbort_pos) 
+fed_negU0 <- kauffman_fun(OverElk_vary, pFem1, pPreg, seroprev1, pAbort_neg) 
+unfed_negU0 <- kauffman_fun(0.0, pFem1, pPreg, seroprev1, pAbort_neg) 
+num_cattlereactU0 <- cattlereact_fun(fed_posU0, fed_negU0, unfed_posU0, unfed_negU0)
+
+yearU0 <- years_fun(num_cattlereactU0)
+```
+
+```{r}
+### Make a dataframe
+
+overlapU0_df <- data.frame(Overlap = c(0.5, 0.75, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0),
+                     Years = c(55.30, 36.87, 27.65, 18.43, 13.83, 11.06, 9.22, 7.90, 6.91, 6.14, 5.53, 5.02, 4.60))
+```
+
+Do some data wrangling and analysis. 
+
+```{r}
+### Identify "plausible" overlap scenarios
+
+probU0_df <- overlapU0_df[7:10,]
+
+probU15_df <- overlapU15_df[7:10,]
+
+probU225_df <- overlapU225_df[7:10,]
+```
+
+```{r}
+### Examine averages and standard deviation
+
+probU0_avg <- mean(probU0_df$Years) ### 7.54
+probU0_sd <- sd(probU0_df$Years) ### 1.33
+
+probU15_avg <- mean(probU15_df$Years) ### 5.33
+probU15_sd <- sd(probU15_df$Years) ### 0.66
+
+probU225_avg <- mean(probU225_df$Years) ### 4.46
+probU225_sd <- sd(probU225_df$Years) ### 0.47
+```
+
+Graph. 
+
+```{r}
+overlap_gg1 <- ggplot(data = overlap_df, aes(x = Overlap, y = Years)) +
+  geom_line(col = "red", linewidth = 1) +
+  geom_line(data = prob_df, aes(x = Overlap, y = Years), col = "blue3", linewidth = 1) +
+  geom_line(data = overlapU0_df, aes(x = Overlap, y = Years), col = "orange", linewidth = 1) +
+  geom_line(data = probU0_df, aes(x = Overlap, y = Years), col = "blue3", linewidth = 1) +
+  geom_line(data = overlapU225_df, aes(x = Overlap, y = Years), col = "green3", linewidth = 1) +
+  geom_line(data = probU225_df, aes(x = Overlap, y = Years), col = "blue3", linewidth = 1) +
+  geom_line(data = overlapU15_df, aes(x = Overlap, y = Years), col = "yellow2", linewidth = 1) +
+  geom_line(data = probU15_df, aes(x = Overlap, y = Years), col = "blue3", linewidth = 1) +
+  geom_point(aes(x = 0.5, y = 27.65), color = "blue3", size = 3) +
+  # geom_hline(yintercept = 6.60, linetype = "dashed", color = "blue3", size = .75) +
+  geom_point(aes(x = 0.5, y = 55.30), color = "blue3", size = 3) +
+  # geom_hline(yintercept = 7.54, linetype = "dashed", color = "blue3", size = .75) +
+  geom_point(aes(x = 0.5, y = 9.22), color = "blue3", size = 3) +
+  # geom_hline(yintercept = 5.33, linetype = "dashed", color = "blue3", size = .75) +
+  geom_point(aes(x = 0.5, y = 13.83), color = "blue3", size = 3) +
+  # geom_hline(yintercept = 4.46, linetype = "dashed", color = "blue3", size = .75) +
+  scale_x_continuous(breaks = seq(0.0, 6.0, by = 0.5)) +
+  scale_y_continuous(breaks = seq(0, 60, by = 10)) +
+  labs(x = "Fed Elk-to-Cattle Overlap", y = "Years Between Cattle Reactors") +
+  theme_minimal()
+
+overlap_gg1 
+```
+
+
+## Seroprevalence
+
+### Seroprevalence Changes Under One Overlap Scenario
+
+According to the Proffitt et al. (2015) paper, a herd with a seroprev of 0.28 may experience a decrease in seroprev to 0.21, 0.12, 0.07, 0.04, and 0.02 following a 10%, 30%, 50%, 70%, and 90% decrease in density. 
+
+```{r}
+### Vary seroprevalence under an average plausible fed elk overlap scenario
+
+seroprev_vary <- 0.60
+
+fed_posP <- kauffman_fun(3.75, pFem1, pPreg, seroprev_vary, pAbort_pos)
+unfed_posP <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev_vary, pAbort_pos) 
+fed_negP <- kauffman_fun(3.75, pFem1, pPreg, seroprev_vary, pAbort_neg) 
+unfed_negP <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev_vary, pAbort_neg) 
+num_cattlereactP <- cattlereact_fun(fed_posP, fed_negP, unfed_posP, unfed_negP)
+
+yearP <- years_fun(num_cattlereactP)
+```
+
+This is assuming the unfed seroprevalence is the same as the fed, and that the unfed seroprevalence will also decrease with a decrease in herd density, which may not necessarily be accurate. 
+
+- (-0%) 0.28: 6.51 
+- (-10%) 0.21: 8.67 
+- (-30%) 0.12: 15.18 
+- (-50%) 0.07: 26.02 
+- (-70%) 0.04: 45.54 
+- (-90%) 0.02: 91.08 
+
+```{r}
+### Make dataframes
+
+seroprev_df <- data.frame(DensityPerc = c(100, 90, 70, 50, 30, 10),
+                     Seroprev = c(0.28, 0.21, 0.12, 0.07, 0.04, 0.02),
+                     Years = c(6.51, 8.67, 15.18, 26.02, 45.54, 91.08))
+
+serorange_df <- data.frame(Seroprev = c(0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60),
+                     Years = c(7.29, 6.07, 5.20, 4.55, 4.05, 3.64, 3.31, 3.04))
+```
+
+Graph. 
+
+```{r}
+seroprev_gg <- ggplot(data = serorange_df, aes(x = Seroprev, y = Years)) +
+  geom_line(linewidth = 1) +
+  geom_line(data = seroprev_df, aes(x = Seroprev, y = Years), col = "blue", linewidth = 1) +
+  geom_point(data = seroprev_df, aes(x = Seroprev, y = Years), size = 2) +
+  geom_point(aes(x = 0.28, y = 6.51), color = "red", size = 3) +
+  geom_point(aes(x = 0.12, y = 15.18), color = "red", size = 3) +
+  scale_x_continuous(breaks = seq(0.0, 0.6, by = 0.05)) +
+  scale_y_continuous(breaks = seq(0, 100, by = 10)) +
+  labs(x = "Brucellosis Seroprevalence", y = "Years Between Cattle Reactors") +
+  theme_minimal() 
+
+seroprev_gg 
+```
+
+
+### Seroprevalence Changes Under Multiple Overlap Scenarios
+
+Vary seroprevalence and fed elk-cattle overlap. 
+
+```{r}
+### Vary seroprevalence for a fed elk overlap of 1.5 
+
+seroprev_vary <- 0.02
+
+fed_posP15 <- kauffman_fun(1.5, pFem1, pPreg, seroprev_vary, pAbort_pos)
+unfed_posP15 <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev_vary, pAbort_pos) 
+fed_negP15 <- kauffman_fun(1.5, pFem1, pPreg, seroprev_vary, pAbort_neg) 
+unfed_negP15 <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev_vary, pAbort_neg) 
+num_cattlereactP15 <- cattlereact_fun(fed_posP15, fed_negP15, unfed_posP15, unfed_negP15)
+
+yearP15 <- years_fun(num_cattlereactP15)
+```
+
+```{r}
+### Make dataframes
+
+serorange15_df <- data.frame(Seroprev = c(0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60),
+                     Years = c(15.48, 12.90, 11.06, 9.68, 8.60, 7.74, 7.04, 6.45))
+
+seroprev15_df <- data.frame(DensityPerc = c(100, 90, 70, 50, 30, 10),
+                     Seroprev = c(0.28, 0.21, 0.12, 0.07, 0.04, 0.02),
+                     Years = c(13.83, 18.43, 32.26, 55.30, 96.78, 193.55))
+```
+
+```{r}
+### Vary seroprevalence for a fed elk overlap of 3.5 
+
+seroprev_vary <- 0.02
+
+fed_posP35 <- kauffman_fun(3.5, pFem1, pPreg, seroprev_vary, pAbort_pos)
+unfed_posP35 <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev_vary, pAbort_pos) 
+fed_negP35 <- kauffman_fun(3.5, pFem1, pPreg, seroprev_vary, pAbort_neg) 
+unfed_negP35 <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev_vary, pAbort_neg) 
+num_cattlereactP35 <- cattlereact_fun(fed_posP35, fed_negP35, unfed_posP35, unfed_negP35)
+
+yearP35 <- years_fun(num_cattlereactP35)
+```
+
+```{r}
+### Make dataframes
+
+serorange35_df <- data.frame(Seroprev = c(0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60),
+                     Years = c(7.74, 6.45, 5.53, 4.84, 4.30, 3.87, 3.52, 3.23))
+
+seroprev35_df <- data.frame(DensityPerc = c(100, 90, 70, 50, 30, 10),
+                     Seroprev = c(0.28, 0.21, 0.12, 0.07, 0.04, 0.02),
+                     Years = c(6.91, 9.22, 16.13, 27.65, 48.39, 96.78))
+```
+
+```{r}
+### Vary seroprevalence for a fed elk overlap of 0.5
+
+seroprev_vary <- 0.02
+
+fed_posP05 <- kauffman_fun(0.5, pFem1, pPreg, seroprev_vary, pAbort_pos)
+unfed_posP05 <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev_vary, pAbort_pos) 
+fed_negP05 <- kauffman_fun(0.5, pFem1, pPreg, seroprev_vary, pAbort_neg) 
+unfed_negP05 <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev_vary, pAbort_neg) 
+num_cattlereactP05 <- cattlereact_fun(fed_posP05, fed_negP05, unfed_posP05, unfed_negP05)
+
+yearP05 <- years_fun(num_cattlereactP05)
+```
+
+```{r}
+### Make dataframes
+
+serorange05_df <- data.frame(Seroprev = c(0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60),
+                     Years = c(30.96, 25.81, 22.12, 19.36, 17.20, 15.48, 14.08, 12.90))
+
+seroprev05_df <- data.frame(DensityPerc = c(100, 90, 70, 50, 30, 10),
+                     Seroprev = c(0.28, 0.21, 0.12, 0.07, 0.04, 0.02),
+                     Years = c(27.65, 36.87, 64.52, 110.60, 193.55, 387.10))
+```
+
+```{r}
+### Vary seroprevalence for a fed elk overlap of 4.5 
+
+seroprev_vary <- 0.02
+
+fed_posP45 <- kauffman_fun(4.5, pFem1, pPreg, seroprev_vary, pAbort_pos)
+unfed_posP45 <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev_vary, pAbort_pos) 
+fed_negP45 <- kauffman_fun(4.5, pFem1, pPreg, seroprev_vary, pAbort_neg) 
+unfed_negP45 <- kauffman_fun(OverElkJ, pFem1, pPreg, seroprev_vary, pAbort_neg) 
+num_cattlereactP45 <- cattlereact_fun(fed_posP45, fed_negP45, unfed_posP45, unfed_negP45)
+
+yearP45 <- years_fun(num_cattlereactP45)
+```
+
+```{r}
+### Make dataframes
+
+seroprev45_df <- data.frame(DensityPerc = c(100, 90, 70, 50, 30, 10),
+                     Seroprev = c(0.28, 0.21, 0.12, 0.07, 0.04, 0.02),
+                     Years = c(5.53, 7.37, 12.90, 22.12, 38.71, 77.42))
+
+seroprev25_df <- data.frame(DensityPerc = c(100, 90, 70, 50, 30, 10),
+                     Seroprev = c(0.28, 0.21, 0.12, 0.07, 0.04, 0.02),
+                     Years = c(9.22, 12.29, 21.51, 36.87, 64.52, 129.03))
+```
+
+Do some data wrangling and analysis.
+
+```{r}
+### Wrangle for easier graphing 
+
+seroprev25_df_filt <- seroprev25_df %>% 
+  filter(DensityPerc != "10") %>% 
+  filter(DensityPerc != "30")
+
+seroprev05_df_filt <- seroprev05_df %>% 
+  filter(DensityPerc != "10") %>% 
+  filter(DensityPerc != "30")
+
+seroprev15_df_filt <- seroprev15_df %>% 
+  filter(DensityPerc != "10") %>% 
+  filter(DensityPerc != "30")
+
+seroprev35_df_filt <- seroprev35_df %>% 
+  filter(DensityPerc != "10") %>% 
+  filter(DensityPerc != "30")
+
+seroprev45_df_filt <- seroprev45_df %>% 
+  filter(DensityPerc != "10") %>% 
+  filter(DensityPerc != "30")
+```
+
+```{r}
+### Examine averages and standard deviation
+
+current_seroprev <- c(9.22, 13.83, 6.91, 27.65, 5.53)
+currentsp_avg <- mean(current_seroprev) ### 12.63
+currentsp_sd <- sd(current_seroprev) ### 8.97
+
+future_seroprev <- c(21.51, 32.26, 16.13, 64.52, 12.90)
+futuresp_avg <- mean(future_seroprev) ### 29.46
+futuresp_sd <- sd(future_seroprev) ### 20.93
+```
+
+Graph. 
+
+```{r}
+seroprev_gg1 <- ggplot(data = seroprev25_df_filt, aes(x = Seroprev, y = Years)) +
+  geom_line(col = "yellow2", linewidth = 1) +
+  geom_point(size = 2) +
+  geom_line(data = seroprev15_df_filt, aes(x = Seroprev, y = Years), color = "green2", linewidth = 1) +
+  geom_point(data = seroprev15_df_filt, aes(x = Seroprev, y = Years), size = 2) +
+  geom_line(data = seroprev35_df_filt, aes(x = Seroprev, y = Years), color = "orange", linewidth = 1) +
+  geom_point(data = seroprev35_df_filt, aes(x = Seroprev, y = Years), size = 2) +
+  geom_line(data = seroprev05_df_filt, aes(x = Seroprev, y = Years), color = "slateblue", linewidth = 1) +
+  geom_point(data = seroprev05_df_filt, aes(x = Seroprev, y = Years), size = 2) +
+  geom_line(data = seroprev45_df_filt, aes(x = Seroprev, y = Years), color = "red3", linewidth = 1) +
+  geom_point(data = seroprev45_df_filt, aes(x = Seroprev, y = Years), size = 2) +
+  geom_point(aes(x = 0.28, y = 9.22), color = "red", size = 3) +
+  geom_point(aes(x = 0.12, y = 21.51), color = "red", size = 3) +
+  geom_point(aes(x = 0.28, y = 13.83), color = "red", size = 3) + ### 1.5
+  geom_point(aes(x = 0.12, y = 32.26), color = "red", size = 3) + ### 1.5
+  geom_point(aes(x = 0.28, y = 6.91), color = "red", size = 3) + ### 3.5
+  geom_point(aes(x = 0.12, y = 16.13), color = "red", size = 3) + ### 3.5
+  geom_point(aes(x = 0.28, y = 27.65), color = "red", size = 3) +
+  geom_point(aes(x = 0.12, y = 64.52), color = "red", size = 3) +
+  geom_point(aes(x = 0.28, y = 5.53), color = "red", size = 3) +
+  geom_point(aes(x = 0.12, y = 12.90), color = "red", size = 3) +
+  scale_x_continuous(breaks = seq(0.0, 0.3, by = 0.02)) +
+  scale_y_continuous(breaks = seq(0, 120, by = 10)) +
+  labs(x = "Brucellosis Seroprevalence", y = "Years Between Cattle Reactors") +
+  theme_minimal()
+
+seroprev_gg1
+```
+
+
+
+
+
+
+
+
+
+
